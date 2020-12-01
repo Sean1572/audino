@@ -1,14 +1,12 @@
 import axios from "axios";
 import React from "react";
-import WaveSurfer from "/app/frontend/src/wavesurfer.js/src/wavesurfer.js";
-import RegionsPlugin from "wavesurfer.js/dist/plugin/wavesurfer.regions.min.js"; //frontend\src\wavesurfer.js
+import WaveSurfer from "wavesurfer.js";
+import RegionsPlugin from "wavesurfer.js/dist/plugin/wavesurfer.regions.min.js";
 import TimelinePlugin from "wavesurfer.js/dist/plugin/wavesurfer.timeline.min.js";
-import SpectrogramPlugin from "/app/frontend/src/wavesurfer.js/src/plugin/spectrogram/index.js";
 import { Helmet } from "react-helmet";
 import { withRouter } from "react-router-dom";
-//import drawer from "frontend/src/pages/wavesurfer_drawer_extended.js";
+
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import magma from "/app/frontend/src/colormap/colormap.min.js";
 import {
   faSearchMinus,
   faSearchPlus,
@@ -20,10 +18,6 @@ import {
 import Alert from "../components/alert";
 import { IconButton, Button } from "../components/button";
 import Loader from "../components/loader";
-//import Data from "./data";
-//import * as data from "./data.js";
-//import "./data";
-let colormap = require('colormap')
 
 class Annotate extends React.Component {
   constructor(props) {
@@ -31,10 +25,8 @@ class Annotate extends React.Component {
 
     const projectId = Number(this.props.match.params.projectid);
     const dataId = Number(this.props.match.params.dataid);
-    const params = new URLSearchParams(window.location.search);
+
     this.state = {
-      active: params.get("active") || "pending",
-      page: params.get("page") || 1,
       isPlaying: false,
       projectId,
       dataId,
@@ -51,7 +43,6 @@ class Annotate extends React.Component {
       isSegmentDeleting: false,
       errorMessage: null,
       successMessage: null,
-      data: []
     };
 
     this.labelRef = {};
@@ -59,73 +50,17 @@ class Annotate extends React.Component {
   }
 
   componentDidMount() {
-
-    let {page, active } = this.state;
-    var apiUrl = `/api/current_user/projects/${this.state.projectId}/data`
-    apiUrl = `${apiUrl}?page=${page}&active=${active}`;
-
-    axios({
-      method: "get",
-      url: apiUrl,
-    })
-      .then((response) => {
-        const {
-          data,
-          count,
-          active,
-          page,
-          next_page,
-          prev_page,
-        } = response.data;
-        this.setState({
-          data,
-          active,
-          page,
-        });
-      })
-      .catch((error) => {
-        this.setState({
-          errorMessage: error.response.data.message,
-          isDataLoading: false,
-        });
-      });
-    console.log(this.state.data)
-    var spectrogramColorMap = colormap({
-      /*colormap: 'jet',
-      nshades: 10, //256
-      format: 'hex',
-      alpha: 1*/
-      colormap: 'hot',
-      nshades: 256,
-      format: 'float'
-    });
-    var json = JSON.stringify(spectrogramColorMap, 2)
     const { labelsUrl, dataUrl } = this.state;
     this.setState({ isDataLoading: true });
     const wavesurfer = WaveSurfer.create({
       container: "#waveform",
-      barWidth: 0,
-      barHeight: 0,
-      height: 230,
+      barWidth: 2,
+      barHeight: 1,
       barGap: null,
       mediaControls: false,
-      fillParent: true,
-      scrollParent: true,
-      visualization: "invisible", //spectrogram
-      minPxPerSec: 100,
       plugins: [
-        SpectrogramPlugin.create({
-          //wavesurfer: wavesurfer,
-          position: "relative",
-          container: "#wavegraph",
-          labels: true,
-          scrollParent: true,
-          colorMap: spectrogramColorMap,
-          //pixelRatio: 1,
-
-      }),
         RegionsPlugin.create(),
-        //TimelinePlugin.create({ container: "#timeline" }),
+        TimelinePlugin.create({ container: "#timeline" }),
       ],
     });
     this.showSegmentTranscription(null);
@@ -133,10 +68,6 @@ class Annotate extends React.Component {
       wavesurfer.stop();
     });
     wavesurfer.on("ready", () => {
-    //wavesurfer.drawer.canvases[0].position = 'relative';
-    //document.getElementById("myBtn").style.left = "100px";
-    //wavesurfer.spectrogram.wrapper =  <canvas width="1170" height="256" style="position: relative; z-index: 4; width: 1170px;"></canvas>;
-    console.log(wavesurfer.spectrogram.wrapper);
       wavesurfer.enableDragSelection({ color: "rgba(0, 102, 255, 0.3)" });
     });
     wavesurfer.on("region-in", (region) => {
@@ -146,12 +77,6 @@ class Annotate extends React.Component {
       this.showSegmentTranscription(null);
     });
     wavesurfer.on("region-play", (r) => {
-      try {
-        console.log(wavesurfer.spectrogram.canvas);
-      } catch {
-        console.log("doesn't exists")
-      }
-      
       r.once("out", () => {
         wavesurfer.play(r.start);
         wavesurfer.pause();
@@ -168,7 +93,6 @@ class Annotate extends React.Component {
     });
     wavesurfer.on("pause", (r, e) => {
       this.setState({ isPlaying: false });
-      console.log(this.state.active);
     });
 
     axios
@@ -206,7 +130,7 @@ class Annotate extends React.Component {
         });
 
         wavesurfer.load(`/audios/${filename}`);
-        //wavesurfer.drawBuffer();
+        wavesurfer.drawBuffer();
         const { zoom } = this.state;
         wavesurfer.zoom(zoom);
 
@@ -423,55 +347,6 @@ class Annotate extends React.Component {
     });
   }
 
-
-  handleNextClip(e) {
-    var apiUrl = `/api/current_user/projects/${this.state.projectId}/data`
-    apiUrl = `${apiUrl}?page=1&active=${this.state.active}`;
-    axios({
-      method: "get",
-      url: apiUrl,
-    })
-      .then((response) => {
-        const {
-          data,
-          count,
-          active,
-          page,
-          next_page,
-          prev_page,
-        } = response.data;
-        this.setState({ data: data
-        });
-
-        var mn = 1;
-        var mx = data.length;
-        console.log(data.length)
-        var randomValue = Math.random() * (mx - mn) + mn
-        console.log(this.state.data)
-        var newPageData = data[Math.floor(randomValue-1)];
-        //var newPageData = data[Math.floor(randomValue-1)];
-        console.log(newPageData["data_id"]);
-        var url = `/projects/${this.state.projectId}/data/${newPageData["data_id"]}/annotate`
-        
-        ///projects
-        console.log(window.location.href.indexOf("/projects"))
-        var index = window.location.href.indexOf("/projects")
-        var path =  window.location.href.substring(0, index);
-        console.log(path);
-        console.log(path+url);
-        window.location.href = path+url;
-      });
-    
-    //console.log(data.Data.state);
-    //`/projects/${projectId}/data/${data["data_id"]}/annotate`
-    //get data that doesn't need to be reviewed, or data that is reivewed
-    //start with doesn't need to be reviewed so you can learn
-
-    //step two: pull the id thing that the site is using to create URLS
-    //step three: make url string and set window.location.href to that
-    //window.location.href = "https://youtu.be/dQw4w9WgXcQ";
-  }
-
   render() {
     const {
       zoom,
@@ -510,10 +385,8 @@ class Annotate extends React.Component {
             {isDataLoading ? <Loader /> : null}
             <div className="row justify-content-md-center my-4">
               <div ref={(el) => (this.segmentTranscription = el)}></div>
-              <div id ="wavegraph"></div>
               <div id="waveform"></div>
               <div id="timeline"></div>
-                
             </div>
             {!isDataLoading ? (
               <div>
@@ -561,6 +434,39 @@ class Annotate extends React.Component {
                     />
                   </div>
                 </div>
+                <div className="row justify-content-center">
+                  <div className="col-1">
+                    <FontAwesomeIcon icon={faSearchMinus} title="Zoom out" />
+                  </div>
+                  <div className="col-2">
+                    <input
+                      type="range"
+                      min="1"
+                      max="200"
+                      value={zoom}
+                      onChange={(e) => this.handleZoom(e)}
+                    />
+                  </div>
+                  <div className="col-1">
+                    <FontAwesomeIcon icon={faSearchPlus} title="Zoom in" />
+                  </div>
+                </div>
+                <div className="row justify-content-center my-4">
+                  {referenceTranscription ? (
+                    <div className="form-group">
+                      <label className="font-weight-bold">
+                        Reference Transcription
+                      </label>
+                      <textarea
+                        className="form-control"
+                        rows="3"
+                        cols="50"
+                        disabled={true}
+                        value={referenceTranscription}
+                      ></textarea>
+                    </div>
+                  ) : null}
+                </div>
                 {selectedSegment ? (
                   <div>
                     <div className="row justify-content-center my-4">
@@ -568,7 +474,18 @@ class Annotate extends React.Component {
                         <label className="font-weight-bold">
                           Segment Transcription
                         </label>
-                        
+                        <textarea
+                          className="form-control"
+                          rows="3"
+                          cols="50"
+                          value={
+                            (selectedSegment &&
+                              selectedSegment.data.transcription) ||
+                            ""
+                          }
+                          onChange={(e) => this.handleTranscriptionChange(e)}
+                          ref={(el) => (this.transcription = el)}
+                        ></textarea>
                       </div>
                     </div>
                     <div className="row justify-content-center my-4">
@@ -633,9 +550,9 @@ class Annotate extends React.Component {
                         <Button
                           size="lg"
                           type="primary"
-                          //disabled={isSegmentSaving}
+                          disabled={isSegmentSaving}
                           onClick={(e) => this.handleSegmentSave(e)}
-                          //sSubmitting={isSegmentSaving}
+                          isSubmitting={isSegmentSaving}
                           text="Save"
                         />
                       </div>
@@ -660,16 +577,6 @@ class Annotate extends React.Component {
                     </label>
                   </div>
                 </div>
-                <div className="next">
-                  <Button
-                    size="lg"
-                    type="primary"
-                    disabled={isSegmentSaving}
-                    onClick={(e) => this.handleNextClip(e)}
-                    isSubmitting={isSegmentSaving}
-                    text="Next"
-                  />
-                  </div>
               </div>
             ) : null}
           </div>

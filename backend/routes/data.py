@@ -185,7 +185,7 @@ def add_data():
     return (
         jsonify(
             data_id=data.id,
-            message=f"Data uploaded, created and assigned successfully",
+            message=f"Data uploaded, created and assigned successfully for user",
             type="DATA_CREATED",
         ),
         201,

@@ -5,6 +5,8 @@ import { withRouter } from "react-router-dom";
 
 import Loader from "../components/loader";
 
+var datas = [];
+
 class Data extends React.Component {
   constructor(props) {
     super(props);
@@ -75,6 +77,28 @@ class Data extends React.Component {
           isDataLoading: false,
         });
       });
+    //datas = data;
+  }
+
+  getNextPage() {
+    const {
+      projectId,
+      isDataLoading,
+      data,
+      count,
+      active,
+      page,
+      nextPage,
+      prevPage,
+      tabUrls,
+    } = this.state;
+
+   /* Array data
+
+    data.map((data, index) => {
+      href=`/projects/${projectId}/data/${data["data_id"]}/annotate`
+    });*/
+    return projectId, data;
   }
 
   render() {
@@ -89,7 +113,7 @@ class Data extends React.Component {
       prevPage,
       tabUrls,
     } = this.state;
-
+    datas = data
     const nextPageUrl = this.prepareUrl(projectId, nextPage, active);
     const prevPageUrl = this.prepareUrl(projectId, prevPage, active);
 
@@ -214,3 +238,7 @@ class Data extends React.Component {
 }
 
 export default withRouter(Data);
+export function getData() {
+  Data.getNextPage();
+} 
+export let dataLinks = datas;
