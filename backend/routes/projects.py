@@ -488,7 +488,7 @@ def update_data(project_id, data_id):
 
         data = Data.query.filter_by(id=data_id, project_id=project_id).first()
 
-        if request_user != data.assigned_user:
+        if request_user not in  data.assigned_user:
             return jsonify(message="Unauthorized access!"), 401
 
         data.update_marked_review(is_marked_for_review)
@@ -558,7 +558,7 @@ def add_segmentations(project_id, data_id, segmentation_id=None):
 
         data = Data.query.filter_by(id=data_id, project_id=project_id).first()
 
-        if request_user != data.assigned_user:
+        if request_user not in  data.assigned_user:
             return jsonify(message="Unauthorized access!"), 401
 
         segmentation = generate_segmentation(
@@ -617,7 +617,7 @@ def delete_segmentations(project_id, data_id, segmentation_id):
 
         data = Data.query.filter_by(id=data_id, project_id=project_id).first()
 
-        if request_user != data.assigned_user:
+        if request_user not in data.assigned_user:
             return jsonify(message="Unauthorized access!"), 401
 
         segmentation = Segmentation.query.filter_by(

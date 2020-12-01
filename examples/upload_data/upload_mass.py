@@ -63,29 +63,29 @@ for filename in os.listdir(directory):
     reference_transcription = args.reference_transcription
     username = args.username.split('.')
     print(username)
-    #input()
-    for user in username:
-        is_marked_for_review = args.is_marked_for_review
-        segmentations = args.segmentations
+    username_dict = {}
+    is_marked_for_review = args.is_marked_for_review
+    segmentations = args.segmentations
 
-        file = {"audio_file": (audio_filename, audio_obj)}
+    file = {"audio_file": (audio_filename, audio_obj)}
 
-        values = {
-            "reference_transcription": reference_transcription,
-            "username": username,
-            "segmentations": segmentations,
-            "is_marked_for_review": is_marked_for_review,
-        }
+    values = {
+        "reference_transcription": reference_transcription,
+        "username": username,
+        "segmentations": segmentations,
+        "is_marked_for_review": is_marked_for_review,
+    }
 
-        print("Creating datapoint")
-        response = requests.post(
-            f"http://{args.host}:{args.port}/api/data", files=file, data=values, headers=headers
-        )
+    print("Creating datapoint")
+    response = requests.post(
+        f"http://{args.host}:{args.port}/api/data", files=file, data=values, headers=headers
+    )
 
-        if response.status_code == 201:
-            response_json = response.json()
-            print(f"Message: {response_json['message']}")
-        else:
-            print(f"Error Code: {response.status_code}")
-            response_json = response.json()
-            print(f"Message: {response_json['message']}")
+    if response.status_code == 201:
+        response_json = response.json()
+        print(f"Message: {response_json['message']}")
+    else:
+        print(f"Error Code: {response.status_code}")
+        response_json = response.json()
+        print(f"Message: {response_json['message']}")
+        print(response_json)

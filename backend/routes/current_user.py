@@ -56,10 +56,15 @@ def fetch_data_for_project(project_id):
         segmentations = db.session.query(Segmentation.data_id).distinct().subquery()
 
         data = {}
-
+        big_key = "user_id"
+        #print(Data.assigned_user_id)
+        #for key in Data.assigned_user_id:
+        #    if request_user.id == Data.assigned_user_id[key]:
+        #        big_key = key
+        #        print(big_key, key)
         data["pending"] = (
             db.session.query(Data)
-            .filter(Data.assigned_user_id == request_user.id)
+            .filter(request_user.id == Data.assigned_user_id[big_key])
             .filter(Data.project_id == project_id)
             .filter(Data.id.notin_(segmentations))
             .distinct()
@@ -68,7 +73,7 @@ def fetch_data_for_project(project_id):
 
         data["completed"] = (
             db.session.query(Data)
-            .filter(Data.assigned_user_id == request_user.id)
+            .filter(request_user.id == Data.assigned_user_id[big_key])
             .filter(Data.project_id == project_id)
             .filter(Data.id.in_(segmentations))
             .distinct()
@@ -76,13 +81,12 @@ def fetch_data_for_project(project_id):
         )
 
         data["marked_review"] = Data.query.filter_by(
-            assigned_user_id=request_user.id,
             project_id=project_id,
             is_marked_for_review=True,
         ).order_by(Data.last_modified.desc())
 
         data["all"] = Data.query.filter_by(
-            assigned_user_id=request_user.id, project_id=project_id
+            project_id=project_id
         ).order_by(Data.last_modified.desc())
 
         paginated_data = data[active].paginate(page, 10, False)

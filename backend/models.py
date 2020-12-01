@@ -52,7 +52,7 @@ class Data(db.Model):
     )
 
     assigned_user_id = db.Column(
-        "assigned_user_id", db.Integer(), db.ForeignKey("user.id"), nullable=False
+        "assigned_user_id", db.JSON(), nullable=False
     )
 
     filename = db.Column("filename", db.String(100), nullable=False, unique=True)
@@ -80,7 +80,7 @@ class Data(db.Model):
     )
 
     project = db.relationship("Project")
-    assigned_user = db.relationship("User")
+    #assigned_user = db.relationship("User")
     segmentations = db.relationship("Segmentation", backref="Data")
 
     def update_marked_review(self, marked_review):
