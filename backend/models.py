@@ -98,11 +98,11 @@ class Data(db.Model):
             "is_marked_for_review": self.is_marked_for_review,
             "created_at": self.created_at,
             "last_modified": self.last_modified,
-            "assigned_user": {
-                "id": self.assigned_user_id,
-                "username": self.assigned_user.username,
-                "role": self.assigned_user.role.role,
-            },
+            "assigned_users": self.assigned_user_id,
+            #{    "id": self.assigned_user_id,
+                #"username": self.assigned_user.username,
+                #"role": self.assigned_user.role.role,
+            #},
         }
 
 

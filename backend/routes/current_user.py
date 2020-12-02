@@ -54,9 +54,10 @@ def fetch_data_for_project(project_id):
             return jsonify(message="Unauthorized access!"), 401
 
         segmentations = db.session.query(Segmentation.data_id).distinct().subquery()
-
+        #Lets set big id to the {username.idenity, username.id}
+        #this would make it fast but aslo render serval data points
         data = {}
-        big_key = "user_id"
+        big_key = identity["username"]
         #print(Data.assigned_user_id)
         #for key in Data.assigned_user_id:
         #    if request_user.id == Data.assigned_user_id[key]:
