@@ -33,7 +33,7 @@ class Annotate extends React.Component {
     const dataId = Number(this.props.match.params.dataid);
     const params = new URLSearchParams(window.location.search);
     this.state = {
-      active: params.get("active") || "pending",
+      active: params.get("active") || "unknown",
       page: params.get("page") || 1,
       isPlaying: false,
       projectId,
@@ -61,8 +61,8 @@ class Annotate extends React.Component {
   componentDidMount() {
 
     let {page, active } = this.state;
-    var apiUrl = `/api/current_user/projects/${this.state.projectId}/data`
-    apiUrl = `${apiUrl}?page=${page}&active=${active}`;
+    var apiUrl = `/api/current_user/projects/${this.state.projectId}/data/${this.state.dataId}`
+    console.log(this.state.dataId)
 
     axios({
       method: "get",
@@ -82,6 +82,7 @@ class Annotate extends React.Component {
           active,
           page,
         });
+        console.log(this.state.data)
       })
       .catch((error) => {
         this.setState({
@@ -89,7 +90,6 @@ class Annotate extends React.Component {
           isDataLoading: false,
         });
       });
-    console.log(this.state.data)
     var spectrogramColorMap = colormap({
       /*colormap: 'jet',
       nshades: 10, //256
@@ -425,30 +425,58 @@ class Annotate extends React.Component {
 
 
   handleNextClip(e) {
-    var apiUrl = `/api/current_user/projects/${this.state.projectId}/data`
-    apiUrl = `${apiUrl}?page=1&active=${this.state.active}`;
+    /*var currentValue = this.state.active;
+    var apiUrl = `/api/current_user/projects/${this.state.projectId}/data/${this.state.dataId}`
+    console.log(this.state.dataId)
+    apiUrl = `${apiUrl}?active=${this.state.active}`;
     axios({
       method: "get",
       url: apiUrl,
     })
       .then((response) => {
         const {
-          data,
+          data2,
           count,
           active,
           page,
           next_page,
           prev_page,
         } = response.data;
-        this.setState({ data: data
-        });
+        //this.setState({ data: data});*/
 
         var mn = 1;
-        var mx = data.length;
-        console.log(data.length)
+        var mx = this.state.data.length;
+        console.log(this.state.data.length)
         var randomValue = Math.random() * (mx - mn) + mn
         console.log(this.state.data)
-        var newPageData = data[Math.floor(randomValue-1)];
+        console.log(window.location.href);
+        //TODO: FIX THIS LOGIC HERE TO ACTUALLY SET THE NEXT CLIP
+        var newPageData = this.state.data[0];
+        console.log("entered loop")
+        for (var key in this.state.data) {
+          key = parseInt(key)
+          console.log(key + 1)
+          if (this.state.data[key]["data_id"] == this.state.dataId) {
+            console.log("exit loop")
+            try {
+              console.log(key + 1)
+              newPageData = this.state.data[key + 1];
+              console.log(newPageData);
+              console.log(newPageData["data_id"]);
+            }
+            catch(e) {
+              console.log("oppise " + e)
+              newPageData = this.state.data[0];
+              //TODO: Implement next page logic here
+            }
+            console.log(newPageData)
+            break;
+          }
+        }
+        /*var newPageData = data[0];
+        if newPageData["data_id"] = this.dataId {
+          newPageData = data[1]*/
+        //} //Math.floor(randomValue-1)
         //var newPageData = data[Math.floor(randomValue-1)];
         console.log(newPageData["data_id"]);
         var url = `/projects/${this.state.projectId}/data/${newPageData["data_id"]}/annotate`
@@ -460,7 +488,8 @@ class Annotate extends React.Component {
         console.log(path);
         console.log(path+url);
         window.location.href = path+url;
-      });
+        //href = `/projects/${this.state.projectId}/data/${newPageData["data_id"]}/annotate`
+      //});
     
     //console.log(data.Data.state);
     //`/projects/${projectId}/data/${data["data_id"]}/annotate`
