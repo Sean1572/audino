@@ -9,6 +9,7 @@ import {
   faUserPlus,
   faTags,
   faDownload,
+  faFileUpload,
 } from "@fortawesome/free-solid-svg-icons";
 import { IconButton } from "../components/button";
 import Loader from "../components/loader";
@@ -165,6 +166,49 @@ class Admin extends React.Component {
       });
   }
 
+  handleDataUpload(e, projectName, projectId, apiKey) { 
+    console.log(apiKey)
+    /*document.getElementById('get-files').click();
+    while (document.getElementById("get-files").files.length == 0) {
+      console.log("test")
+      continue;
+    }*///#get-files { visibility: hidden; }
+    var inp = document.getElementById("get-files");
+    // Access and handle the files   
+    for (var i = 0; i < inp.files.length; i++) { 
+      //upload each file
+      let file = inp.files[i];
+      
+      console.log(file)
+      console.log(file["name"])
+      var filename = file["name"]
+      axios({
+        method: "post",
+        url: `/api/data`,
+        files: {"audio_file": {filename, file}},
+        test: {"testing": "hello"},
+        data: {
+            "reference_transcription": null,
+            "username": "admin",
+            "segmentations": {},
+            "is_marked_for_review": true,
+          },
+        headers: {"Authorization": apiKey},
+        processData: false, // don't let jquery process the data
+        contentType: false,
+      })
+        .then((response) => {
+            console.log(response.data);
+        })
+        .catch((error) => {
+          this.setState({
+            errorMessage: error.response.data.message,
+            isUserLoading: false,
+          });
+        });
+    }
+  }
+
   setModalShow(modalShow) {
     this.setState({ modalShow });
   }
@@ -269,6 +313,20 @@ class Admin extends React.Component {
                                   e,
                                   project["name"],
                                   project["project_id"]
+                                )
+                              }
+                            />
+                            <input type="file" name="client-file" id="get-files" multiple/>
+                            <IconButton
+                              icon={faFileUpload}
+                              size="sm"
+                              title={"Upload Files"}
+                              onClick={(e) =>
+                                this.handleDataUpload(
+                                  e,
+                                  project["name"],
+                                  project["project_id"],
+                                  project["api_key"]
                                 )
                               }
                             />

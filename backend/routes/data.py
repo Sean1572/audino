@@ -136,8 +136,15 @@ def add_data():
     segmentations = request.form.get("segmentations", "[]")
     reference_transcription = request.form.get("reference_transcription", None)
     is_marked_for_review = bool(request.form.get("is_marked_for_review", False))
+    app.logger.info("made it this far")
+    app.logger.info(request.files)
+    app.logger.info((request.__dict__))
+    for item in request.files:
+        app.logger.info(item)
     audio_file = request.files["audio_file"]
+    app.logger.info(audio_file)
     original_filename = secure_filename(audio_file.filename)
+    app.logger.info("made it this far")
 
     extension = Path(original_filename).suffix.lower()
 
