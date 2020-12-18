@@ -61,7 +61,7 @@ class Annotate extends React.Component {
   componentDidMount() {
 
     let {page, active } = this.state;
-    var apiUrl = `/api/current_user/projects/${this.state.projectId}/data/${this.state.dataId}`
+    var apiUrl = `/api/current_user/projects/${this.state.projectId}/data/${this.state.dataId}/page/${page}`
     console.log(this.state.dataId)
 
     axios({
