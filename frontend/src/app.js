@@ -31,6 +31,7 @@ const history = createBrowserHistory();
 const initialState = {
   username: "",
   isUserLoggedIn: null,
+  isUserCreatingAccount: false,
   isAdmin: false,
   isLoading: false,
 };
@@ -81,40 +82,59 @@ class App extends React.Component {
       isAdmin: false,
     };
   }
+ 
   componentDidMount() {
-    axios({
-      method: "post",
-      url: "/auth/is_logged_in",
-    })
-      .then((response) => {
-        const { is_logged_in } = response.data;
-        this.props.store.set("isUserLoggedIn", is_logged_in);
-        if (is_logged_in === true) {
-          const { username, is_admin } = response.data;
-          this.props.store.set("isAdmin", is_admin);
-          this.props.store.set("username", username);
-        }
-        if (history.location.pathname === "/") {
-          history.push("/dashboard");
-        } else {
-          history.push(history.location.pathname);
-        }
+    var isUserCreatingAccount = this.props.store.get("isUserCreatingAccount");
+    if (window.location.href.includes("/newUser")) {
+      isUserCreatingAccount = true;
+    } else {
+      isUserCreatingAccount = false;
+      this.props.store.set("isUserCreatingAccount", false);
+    }
+    if (!isUserCreatingAccount) {
+      axios({
+        method: "post",
+        url: "/auth/is_logged_in",
       })
-      .catch((error) => {
-        if (error.response.status === 401) {
-          if (history.location.pathname === "/newUser") {
-            this.props.store.set("isUserLoggedIn", true);
-            history.push("/newUser");
-          } else {
-            history.push("/");
-            this.props.store.set("isUserLoggedIn", false);
+        .then((response) => {
+          const { is_logged_in } = response.data;
+          this.props.store.set("isUserLoggedIn", is_logged_in);
+          if (is_logged_in === true) {
+            const { username, is_admin } = response.data;
+            this.props.store.set("isAdmin", is_admin);
+            this.props.store.set("username", username);
           }
-        }
-      });
+          if (history.location.pathname === "/") {
+            history.push("/dashboard");
+          } else {
+            history.push(history.location.pathname);
+          }
+        })
+        .catch((error) => {
+          if (error.response.status === 401) {
+            if (history.location.pathname === "/newUser") {
+              this.props.store.set("isUserCreatingAccount", true);
+              history.push("/newUser");
+            } else {
+              history.push("/");
+              this.props.store.set("isUserLoggedIn", false);
+              this.props.store.set("isUserCreatingAccount", false);
+            }
+          }
+        });
+    }
+    else {
+      console.log("hopefully just creating a user")
+      this.props.store.set("isUserCreatingAccount", true);
+      this.props.store.set("isUserLoggedIn", false);
+      history.push("/newUser");
+      
+    }
   }
 
   render() {
     const isUserLoggedIn = this.props.store.get("isUserLoggedIn");
+    const isUserCreatingAccount = this.props.store.get("isUserCreatingAccount");
 
     if (isUserLoggedIn === null) {
       return null;
@@ -132,7 +152,7 @@ class App extends React.Component {
               render={(props) => {
                 if (isUserLoggedIn === false) {
                   console.log(window.location.href)
-                  if (window.location.href.includes("/newUser")) {
+                  if (isUserCreatingAccount && window.location.href.includes("/newUser")) {  // window.location.href.includes("/newUser")
                     return <Redirect {...props} to="/newUser"/>;
                   } else {
                     return <Home {...props} />;

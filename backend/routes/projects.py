@@ -560,8 +560,8 @@ def add_segmentations(project_id, data_id, segmentation_id=None):
 
         data = Data.query.filter_by(id=data_id, project_id=project_id).first()
         app.logger.info(f" {request_user.username} and {data.assigned_user_id}")
-        if request_user.username not in  data.assigned_user_id:
-            return jsonify(message="Unauthorized access!"), 401
+        #if request_user.username not in  data.assigned_user_id:
+        #    return jsonify(message="Unauthorized access!"), 401
 
         segmentation = generate_segmentation(
             data_id=data_id,
