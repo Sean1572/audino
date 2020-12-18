@@ -2,15 +2,17 @@ import React from "react";
 import axios from "axios";
 import { withRouter } from "react-router";
 import { withStore } from "@spyna/react-store";
-
+import { setAuthorizationToken } from "../../utils";
 import Alert from "../../components/alert";
 import { Button } from "../../components/button";
 
 class CreateUserForm extends React.Component {
   constructor(props) {
     super(props);
-
+    console.log(this.props.authNeeded)
+    const authNeeded = this.props.authNeeded === 'true';
     this.initialState = {
+      authNeeded,
       username: "",
       password: "",
       role: "user",
@@ -42,8 +44,11 @@ class CreateUserForm extends React.Component {
     e.preventDefault();
 
     this.setState({ isSubmitting: true });
-
-    const { username, password, role } = this.state;
+    //var authNeeded = this.authNeeded;
+    //console.log(authNeeded)
+    const { username, password, role, authNeeded } = this.state;
+    console.log(authNeeded)
+    const { history } = this.props;
 
     if (!username || username === "") {
       this.setState({
@@ -63,7 +68,7 @@ class CreateUserForm extends React.Component {
       return;
     }
 
-    if (!role || !["1", "2"].includes(role)) {
+    if (authNeeded && (!role || !["1", "2"].includes(role))) {
       this.setState({
         isSubmitting: false,
         errorMessage: "Please select a valid role!",
@@ -72,21 +77,36 @@ class CreateUserForm extends React.Component {
       return;
     }
 
+    var apiurl = ""
+
+    if (authNeeded) {
+      apiurl = "api/users";
+    } else {
+      apiurl = "api/users/no_auth"
+    }
+    console.log(apiurl)
     axios({
       method: "post",
-      url: "/api/users",
+      url: apiurl,
       data: {
         username,
         password,
         role,
+        authNeeded,
       },
     })
       .then((response) => {
         if (response.status === 201) {
-          this.resetState();
-          this.form.reset();
-
-          this.setState({ successMessage: response.data.message });
+          if (!authNeeded) {
+            //var index = window.location.href.indexOf("/newUser")
+            //var path =  window.location.href.substring(0, index);
+            //window.location.href = path
+            this.handleLoggingIn(e)
+          } else {
+            this.resetState();
+            this.form.reset();
+            this.setState({ successMessage: response.data.message });
+          }
         }
       })
       .catch((error) => {
@@ -94,6 +114,48 @@ class CreateUserForm extends React.Component {
           errorMessage: error.response.data.message,
           successMessage: "",
           isSubmitting: false,
+        });
+      });
+  }
+
+  handleLoggingIn(e) {
+    e.preventDefault();
+    this.setState({ isSigningIn: true });
+
+    const { username, password } = this.state;
+    const { history } = this.props;
+
+    axios({
+      method: "post",
+      url: "/auth/login",
+      data: {
+        username,
+        password,
+      },
+    })
+      .then((response) => {
+        this.resetState();
+        this.setState({
+          successMessage: "Logging you in...",
+        });
+
+        const { access_token, username, is_admin } = response.data;
+
+        localStorage.setItem("access_token", access_token);
+
+        setAuthorizationToken(access_token);
+
+        this.props.store.set("username", username);
+        this.props.store.set("isAdmin", is_admin);
+        this.props.store.set("isUserLoggedIn", true);
+
+        history.push("/dashboard");
+      })
+      .catch((error) => {
+        this.setState({
+          isSigningIn: false,
+          successMessage: "",
+          errorMessage: error.response.data.message,
         });
       });
   }
@@ -107,7 +169,7 @@ class CreateUserForm extends React.Component {
   }
 
   render() {
-    const { isSubmitting, errorMessage, successMessage } = this.state;
+    const { isSubmitting, errorMessage, successMessage, authNeeded } = this.state;
     return (
       <div className="container h-75 text-center">
         <div className="row h-100 justify-content-center align-items-center">
@@ -151,17 +213,19 @@ class CreateUserForm extends React.Component {
                 onChange={(e) => this.handlePasswordChange(e)}
               />
             </div>
-            <div className="form-group">
-              <select
-                className="form-control"
-                name="role"
-                onChange={(e) => this.handleRoleChange(e)}
-              >
-                <option value="-1">Choose role</option>
-                <option value="1">Admin</option>
-                <option value="2">User</option>
-              </select>
-            </div>
+            {authNeeded &&
+              <div className="form-group">
+                <select
+                  className="form-control"
+                  name="role"
+                  onChange={(e) => this.handleRoleChange(e)}
+                >
+                  <option value="-1">Choose role</option>
+                  <option value="1">Admin</option>
+                  <option value="2">User</option>
+                </select>
+              </div> 
+            }
             <div className="form-row">
               <div className="form-group col">
                 <Button

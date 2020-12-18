@@ -123,11 +123,15 @@ def add_data():
     if not project:
         raise NotFound(description="No project exist with given API Key")
 
-    username = request.form.get("username", None)
-    user = User.query.filter_by(username=username).first()
+    username = request.form.getlist("username", None)
+    username_id = {}
+    for name in username:
+        user = User.query.filter_by(username=name).first()
 
-    if not user:
-        raise NotFound(description="No user found with given username")
+        if not user:
+            raise NotFound(description="No user found with given username")
+
+        username_id[name] = user.id
 
     segmentations = request.form.get("segmentations", "[]")
     reference_transcription = request.form.get("reference_transcription", None)
@@ -144,15 +148,19 @@ def add_data():
 
     file_path = Path(app.config["UPLOAD_FOLDER"]).joinpath(filename)
     audio_file.save(file_path.as_posix())
-
-    data = Data(
-        project_id=project.id,
-        filename=filename,
-        original_filename=original_filename,
-        reference_transcription=reference_transcription,
-        is_marked_for_review=is_marked_for_review,
-        assigned_user_id=user.id,
-    )
+    try:
+        data = Data(
+            project_id=project.id,
+            filename=filename,
+            original_filename=original_filename,
+            reference_transcription=reference_transcription,
+            is_marked_for_review=is_marked_for_review,
+            assigned_user_id= username_id,
+        )
+    except Exception as e:
+        #error = "username_id is bad " + username_id 
+        raise BadRequest(description="username_id is bad ")
+    print("HELLLO THERE ERROR MESSAGE") 
     db.session.add(data)
     db.session.flush()
 
@@ -185,7 +193,7 @@ def add_data():
     return (
         jsonify(
             data_id=data.id,
-            message=f"Data uploaded, created and assigned successfully",
+            message=f"Data uploaded, created and assigned successfully for user",
             type="DATA_CREATED",
         ),
         201,

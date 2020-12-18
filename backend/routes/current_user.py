@@ -54,12 +54,18 @@ def fetch_data_for_project(project_id):
             return jsonify(message="Unauthorized access!"), 401
 
         segmentations = db.session.query(Segmentation.data_id).distinct().subquery()
-
+        #Lets set big id to the {username.idenity, username.id}
+        #this would make it fast but aslo render serval data points
         data = {}
-
+        big_key = identity["username"]
+        #print(Data.assigned_user_id)
+        #for key in Data.assigned_user_id:
+        #    if request_user.id == Data.assigned_user_id[key]:
+        #        big_key = key
+        #        print(big_key, key)
         data["pending"] = (
             db.session.query(Data)
-            .filter(Data.assigned_user_id == request_user.id)
+            .filter(request_user.id == Data.assigned_user_id[big_key])
             .filter(Data.project_id == project_id)
             .filter(Data.id.notin_(segmentations))
             .distinct()
@@ -68,7 +74,7 @@ def fetch_data_for_project(project_id):
 
         data["completed"] = (
             db.session.query(Data)
-            .filter(Data.assigned_user_id == request_user.id)
+            .filter(request_user.id == Data.assigned_user_id[big_key])
             .filter(Data.project_id == project_id)
             .filter(Data.id.in_(segmentations))
             .distinct()
@@ -76,13 +82,12 @@ def fetch_data_for_project(project_id):
         )
 
         data["marked_review"] = Data.query.filter_by(
-            assigned_user_id=request_user.id,
             project_id=project_id,
             is_marked_for_review=True,
         ).order_by(Data.last_modified.desc())
 
         data["all"] = Data.query.filter_by(
-            assigned_user_id=request_user.id, project_id=project_id
+            project_id=project_id
         ).order_by(Data.last_modified.desc())
 
         paginated_data = data[active].paginate(page, 10, False)
@@ -121,3 +126,187 @@ def fetch_data_for_project(project_id):
         ),
         200,
     )
+
+@api.route("/current_user/projects/<int:project_id>/data/<int:data_value>", methods=["GET"])
+@jwt_required
+def get_next_data(project_id, data_value):
+    identity = get_jwt_identity()
+
+    page = request.args.get("page", 1, type=int)
+    active = request.args.get("active", "completed", type=str)
+
+    try:
+        request_user = User.query.filter_by(username=identity["username"]).first()
+        project = Project.query.get(project_id)
+        project = Project.query.get(project_id)
+
+        if request_user not in project.users:
+            return jsonify(message="Unauthorized access!"), 401
+
+        segmentations = db.session.query(Segmentation.data_id).distinct().subquery()
+        #Lets set big id to the {username.idenity, username.id}
+        #this would make it fast but aslo render serval data points
+        data = {}
+        big_key = identity["username"]
+        #print(Data.assigned_user_id)
+        #for key in Data.assigned_user_id:
+        #    if request_user.id == Data.assigned_user_id[key]:
+        #        big_key = key
+        #        print(big_key, key)
+        data["pending"] = (
+            db.session.query(Data)
+            .filter(request_user.id == Data.assigned_user_id[big_key])
+            .filter(Data.project_id == project_id)
+            .filter(Data.id.notin_(segmentations))
+            .distinct()
+            .order_by(Data.last_modified.desc())
+        )
+
+        data["completed"] = (
+            db.session.query(Data)
+            .filter(request_user.id == Data.assigned_user_id[big_key])
+            .filter(Data.project_id == project_id)
+            .filter(Data.id.in_(segmentations))
+            .distinct()
+            .order_by(Data.last_modified.desc())
+        )
+
+        paginated_data_pending = data["pending"].paginate(page, 10, False)
+        paginated_data_complet = data["completed"].paginate(page, 10, False)
+        paginated_data = paginated_data_pending
+
+        if (active != "pending"):
+            for data_pt in paginated_data_complet.items:
+                if data_pt.id == data_value:
+                    active = "completed"
+                    paginated_data = paginated_data_complet
+                    break
+            app.logger.info(active)
+
+        next_page = paginated_data.next_num if paginated_data.has_next else None
+        prev_page = paginated_data.prev_num if paginated_data.has_prev else None
+        response = list(
+            [
+                {
+                    "data_id": data_point.id,
+                    "filename": data_point.filename,
+                    "original_filename": data_point.original_filename,
+                    "created_on": data_point.created_at.strftime("%B %d, %Y"),
+                    "reference_transcription": data_point.reference_transcription,
+                    "is_marked_for_review": data_point.is_marked_for_review,
+                    "number_of_segmentations": len(data_point.segmentations),
+                }
+                for data_point in paginated_data.items
+            ]
+        )
+        count_data = {key: value.count() for key, value in data.items()}
+    except Exception as e:
+        message = "Error fetching all data points"
+        app.logger.error(message)
+        app.logger.error(e)
+        return jsonify(message=message), 501
+
+    return (
+        jsonify(
+            data=response,
+            count=count_data,
+            next_page=next_page,
+            prev_page=prev_page,
+            page=page,
+            active=active,
+        ),
+        200,
+    )
+
+@api.route("/current_user/projects/get_all", methods=["GET"])
+@jwt_required
+def get_all():
+    identity = get_jwt_identity()
+    app.logger.info("made it this far")
+    #page = request.args.get("page", 1, type=int)
+    #active = request.args.get("active", "completed", type=str)
+
+    try:
+        request_user = User.query.filter_by(username=identity["username"]).first()
+
+        #debug to improve secuiuty 
+        #if request_user not in project.users:
+        #    return jsonify(message="Unauthorized access!"), 401
+
+        segmentations = db.session.query(Segmentation.data_id).distinct().subquery()
+        #Lets set big id to the {username.idenity, username.id}
+        #this would make it fast but aslo render serval data points
+        data = {}
+        big_key = identity["username"]
+        #print(Data.assigned_user_id)
+        #for key in Data.assigned_user_id:
+        #    if request_user.id == Data.assigned_user_id[key]:
+        #        big_key = key
+        #        print(big_key, key)
+        app.logger.info("made it this far")
+        data["pending"] = (
+            db.session.query(Data)
+            .distinct()
+            .order_by(Data.last_modified.desc())
+            .all()
+        )
+        app.logger.info("made it this far")
+        #data["completed"] = (
+        #    db.session.query(Data)
+        #    .filter(Data.id.in_(segmentations))
+        #    .distinct()
+        #    .order_by(Data.last_modified.desc())
+        #)
+
+        paginated_data = data["pending"]
+        #app.logger.info(paginated_data)
+        #paginated_data_complet = data["completed"].paginate(False)
+        #paginated_data = paginated_data_pending
+
+        #if (active != "pending"):
+        #    for data_pt in paginated_data_complet.items:
+        #        if data_pt.id == data_value:
+        #            active = "completed"
+        #            paginated_data = paginated_data_complet
+        #            break
+        #    app.logger.info(active)
+
+        #next_page = paginated_data.next_num if paginated_data.has_next else None
+        #prev_page = paginated_data.prev_num if paginated_data.has_prev else None
+        response = []
+        for data_point in paginated_data:
+            date = ""  
+            if data_point.created_at != None:
+                date = data_point.created_at.strftime("%B %d, %Y")
+            else: 
+                date = "N/a"
+            new_data = {
+                    "data_id": data_point.id,
+                    "filename": data_point.filename,
+                    "original_filename": data_point.original_filename,
+                    "created_on": date, 
+                    "reference_transcription": data_point.reference_transcription,
+                    "is_marked_for_review": data_point.is_marked_for_review,
+                    "number_of_segmentations": len(data_point.segmentations),
+                }
+            response.append(new_data)
+        app.logger.info("made it this far")
+        count_data = {}
+        count = 0
+        for key in data:
+            count+=1
+            count_data[key] = count
+    except Exception as e:
+        message = "Error fetching all data points"
+        app.logger.error(message)
+        app.logger.error(e)
+        return jsonify(message=message), 501
+
+    return (
+        jsonify(
+            data=response,
+            count=count_data,
+        ),
+        200,
+    )
+

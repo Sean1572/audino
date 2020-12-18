@@ -18,7 +18,11 @@ body,
 
 #waveform {
   width: 100%;
-  height: 130px;
+  position: relative;
+}
+#wavegraph {
+  width: 200%;
+  position: relative;
 }
 
 #timeline {

@@ -19,8 +19,12 @@ import {
   LabelValues,
   Data,
   Annotate,
+  Database,
+  CreateUser,
 } from "./pages";
 import NavBar from "./containers/navbar";
+import createUserForm from "./containers/forms/createUserForm";
+import { faWindowRestore } from "@fortawesome/free-solid-svg-icons";
 
 const history = createBrowserHistory();
 
@@ -51,6 +55,17 @@ const PrivateRoute = withStore(({ component: Component, ...rest }) => {
         } else {
           return <Redirect to="/" />;
         }
+      }}
+    />
+  );
+});
+
+const PublicRoute = withStore(({ component: Component, ...rest }) => {
+  return (
+    <Route
+      {...rest}
+      render={(props) => {
+        return <Component {...props}/>;
       }}
     />
   );
@@ -87,8 +102,13 @@ class App extends React.Component {
       })
       .catch((error) => {
         if (error.response.status === 401) {
-          history.push("/");
-          this.props.store.set("isUserLoggedIn", false);
+          if (history.location.pathname === "/newUser") {
+            this.props.store.set("isUserLoggedIn", true);
+            history.push("/newUser");
+          } else {
+            history.push("/");
+            this.props.store.set("isUserLoggedIn", false);
+          }
         }
       });
   }
@@ -111,15 +131,22 @@ class App extends React.Component {
               path="/"
               render={(props) => {
                 if (isUserLoggedIn === false) {
-                  return <Home {...props} />;
+                  console.log(window.location.href)
+                  if (window.location.href.includes("/newUser")) {
+                    return <Redirect {...props} to="/newUser"/>;
+                  } else {
+                    return <Home {...props} />;
+                  }
                 } else {
                   return <Redirect {...props} to="/dashboard" />;
                 }
               }}
             />
+            <PublicRoute exact path="/newUser" component={CreateUser}/>
             <Route path="/empty" component={null} key="empty" />
             <PrivateRoute exact path="/admin" component={Admin} />
             <PrivateRoute exact path="/dashboard" component={Dashboard} />
+            <PrivateRoute exact path="/database" component={Database}/>
             <PrivateRoute
               exact
               path="/projects/:id/labels"

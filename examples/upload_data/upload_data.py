@@ -41,9 +41,11 @@ parser.add_argument(
 )
 parser.add_argument("--port", type=int, help="Port to make request to", default=80)
 
+parser.add_argument("--api_key", type=str, help="Port to make request to", default=80)
+
 args = parser.parse_args()
 
-api_key = os.getenv("API_KEY", None)
+api_key = args.api_key
 headers = {"Authorization": api_key}
 
 audio_path = Path(args.audio_file)

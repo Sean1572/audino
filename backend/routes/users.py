@@ -9,7 +9,6 @@ from backend.models import User
 
 from . import api
 
-
 @api.route("/users", methods=["POST"])
 @jwt_required
 def create_user():
@@ -64,6 +63,84 @@ def create_user():
 
     return jsonify(user_id=user.id, message="User has been created!"), 201
 
+@api.route("/users/no_auth", methods=["POST"])
+def create_user_no_auth():
+    authNeeded = request.json.get("authNeeded", None)
+    dont_make_admin = False
+    if (not authNeeded):
+        dont_make_admin = True;
+    app.logger.info("this far")
+    print("hello?")
+    # TODO: Make jwt user id based to expire user session if permissions are changed
+    identity = get_jwt_identity()
+    app.logger.info(identity)
+    if (identity == None):
+        if (authNeeded):
+            return jsonify(message="Unauthorized access!"), 401
+    else:
+        request_user = User.query.filter_by(username=identity["username"]).first()
+        is_admin = True if request_user.role.role == "admin" else False
+        authNeeded = not(is_admin)
+    
+    print("hello?")
+    
+    
+    app.logger.info(authNeeded)
+
+    app.logger.info("this far")
+
+    
+
+    if authNeeded: #is_admin == False and authNeeded) or 
+        return jsonify(message="Unauthorized access!"), 401
+
+    if not request.is_json:
+        return jsonify(message="Missing JSON in request"), 400
+
+    app.logger.info("this far")
+
+    username = request.json.get("username", None)
+    password = request.json.get("password", None)
+    role_id = "2"
+    app.logger.info(role_id)
+
+    if not username:
+        return (
+            jsonify(message="Please provide your username!", type="USERNAME_MISSING"),
+            400,
+        )
+    if not password:
+        return (
+            jsonify(message="Please provide your password!", type="PASSWORD_MISSING"),
+            400,
+        )
+
+    app.logger.info("this far")
+
+    if not role_id:
+        return (jsonify(message="Please provide your role!", type="ROLE_MISSING"), 400)
+
+    if role_id not in ["1", "2"]:
+        return (
+            jsonify(message="Please assign correct role!", type="ROLE_INCORRECT"),
+            400,
+        )
+    app.logger.info("this far")
+    try:
+        user = User(username=username, role_id=role_id)
+        user.set_password(password)
+        db.session.add(user)
+        db.session.commit()
+        db.session.refresh(user)
+    except Exception as e:
+        if type(e) == sa.exc.IntegrityError:
+            app.logger.info(f"User {username} already exists!")
+            return (jsonify(message="User already exists!", type="DUPLICATE_USER"), 409)
+        app.logger.error("Error creating user")
+        app.logger.error(e)
+        return jsonify(message="Error creating user!"), 500
+
+    return jsonify(user_id=user.id, message="User has been created!"), 201
 
 @api.route("/users/<int:user_id>", methods=["GET"])
 @jwt_required

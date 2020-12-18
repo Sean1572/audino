@@ -26,7 +26,7 @@ const FormModal = (props) => {
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        {props.formType === "NEW_USER" ? <CreateUserForm /> : null}
+        {props.formType === "NEW_USER" ? <CreateUserForm authNeeded="true"/> : null}
         {props.formType === "NEW_PROJECT" ? <CreateProjectForm /> : null}
         {props.formType === "EDIT_USER" ? (
           <EditUserForm userId={props.userId} />
