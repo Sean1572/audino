@@ -101,7 +101,26 @@ class CreateUserForm extends React.Component {
             //var index = window.location.href.indexOf("/newUser")
             //var path =  window.location.href.substring(0, index);
             //window.location.href = path
-            this.handleLoggingIn(e)
+            apiurl = "api/projects/example"
+            axios({
+              method: "patch",
+              url: apiurl,
+              data: {
+                users: username,
+              },
+            })
+              .then((response) => {
+                if (response.status === 200) {
+                  this.handleLoggingIn(e)
+                }
+              })
+            .catch((error)=> {
+              this.setState({
+                errorMessage: error.response.data.message,
+                successMessage: "",
+                isSubmitting: false,
+              });
+            });
           } else {
             this.resetState();
             this.form.reset();

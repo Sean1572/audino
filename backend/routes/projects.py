@@ -199,6 +199,47 @@ def update_project_users(project_id):
         200,
     )
 
+@api.route("/projects/example", methods=["PATCH"])
+def give_users_examples():
+    user_id = request.json.get("users")
+    app.logger.info(f"{user_id}")
+    for project_id in [3, 4, 5]:
+        try:
+            project = Project.query.get(project_id)
+            # TODO: Decide whether to give creator of project access
+            # project.users.append(request_user)
+            if project is None:
+                app.logger.info(f"{project_id} is null")
+                continue
+            final_users = [user for user in project.users]
+            user = User.query.filter_by(username=user_id).first()
+            app.logger.info(f"{user.username}")
+            if user not in project.users:
+                final_users.append(user)
+            
+            project.users = final_users
+            app.logger.info(f"{final_users}")
+            db.session.add(project)
+            db.session.commit()
+        except Exception as e:
+            app.logger.error(f"Error adding users to project: {User.query.all()[0].id}")
+            app.logger.error(e)
+            return (
+                jsonify(
+                    message=f"Error adding users to project: {project_id}",
+                    type="USERS_ASSIGNMENT_FAILED",
+                ),
+                500,
+            )
+
+    return (
+        jsonify(
+            project_id=project.id,
+            message=f"Users assigned to project: {project.name}",
+            type="USERS_ASSIGNED_TO_PROJECT",
+        ),
+        200,
+    )
 
 @api.route("/projects/<int:project_id>/labels", methods=["POST"])
 @jwt_required
