@@ -231,7 +231,7 @@ def give_users_examples():
                 ),
                 500,
             )
-
+    
     return (
         jsonify(
             project_id=project.id,
