@@ -34,10 +34,7 @@ class Annotate extends React.Component {
     const params = new URLSearchParams(window.location.search);
     this.state = {
       active: params.get("active") || "unknown",
-      page: null,
-      next_page: 1,
-      next_data_url: "",
-      next_data_id: -1,
+      page: params.get("page") || 1,
       isPlaying: false,
       projectId,
       dataId,
@@ -62,15 +59,10 @@ class Annotate extends React.Component {
   }
 
   componentDidMount() {
-    let {page, active } = this.state;
 
-    var apiUrl = `/api/current_user/unknown/projects/${this.state.projectId}/data/${this.state.dataId}`///page/${page}`
-    //`/api/current_user/projects/${this.state.projectId}/data/${this.state.dataId}`///page/${page}`
+    let {page, active } = this.state;
+    var apiUrl = `/api/current_user/projects/${this.state.projectId}/data/${this.state.dataId}/page/${page}`
     console.log(this.state.dataId)
-    console.log(page)
-    console.log(this.state.page)
-    //TODO: figure out how to update page number here
-    console.log("page number is " + page)
 
     axios({
       method: "get",
@@ -79,6 +71,7 @@ class Annotate extends React.Component {
       .then((response) => {
         const {
           data,
+          count,
           active,
           page,
           next_page,
@@ -88,56 +81,15 @@ class Annotate extends React.Component {
           data,
           active,
           page,
-          next_page,
         });
         console.log(this.state.data)
-        console.log(next_page)
-
-      let {next_data_url, projectId } = this.state;
-      var apiUrl2 = `/api/current_user/projects/${projectId}/data`
-      console.log(next_page)
-      console.log(active)
-      apiUrl2 = `${apiUrl2}?page=${next_page}&active=${active}`;
-
-      axios({
-        method: "get",
-        url: apiUrl2,
       })
-        .then((response) => {
-          const {
-            data,
-            count,
-            active,
-            page,
-            next_page,
-            prev_page,
-          } = response.data;
-            console.log(data)
-            next_data_url = `/projects/${projectId}/data/${data[0]["data_id"]}/annotate`
-            var index = window.location.href.indexOf("/projects")
-            var path =  window.location.href.substring(0, index);
-            console.log(path);
-            console.log(path+next_data_url);
-            this.setState({
-              next_data_url: path+next_data_url,
-              next_data_id: data[0]["data_id"]
-            });
-            console.log("here comes the test");
-            console.log(this.state.next_data_url)
-        })
-        .catch((error) => {
-          this.setState({
-            errorMessage: error.response.data.message,
-          });
+      .catch((error) => {
+        this.setState({
+          errorMessage: error.response.data.message,
+          isDataLoading: false,
         });
-    })
-    .catch((error) => {
-      this.setState({
-        errorMessage: error.response.data.message,
-        isDataLoading: false,
       });
-    });
-      
     var spectrogramColorMap = colormap({
       /*colormap: 'jet',
       nshades: 10, //256
@@ -155,13 +107,12 @@ class Annotate extends React.Component {
       barWidth: 0,
       barHeight: 0,
       height: 230,
-      width: "100%",
       barGap: null,
       mediaControls: false,
       fillParent: true,
       scrollParent: true,
       visualization: "invisible", //spectrogram
-      minPxPerSec: 56,
+      minPxPerSec: 100,
       plugins: [
         SpectrogramPlugin.create({
           //wavesurfer: wavesurfer,
@@ -474,75 +425,72 @@ class Annotate extends React.Component {
 
 
   handleNextClip(e) {
-    console.log(this.state.page)
-    console.log(this.state.data)
-    console.log(window.location.href);
-    //TODO: FIX THIS LOGIC HERE TO ACTUALLY SET THE NEXT CLIP
-    var newPageData = this.state.data[0];
-    console.log("entered loop")
-    for (var key in this.state.data) {
-      key = parseInt(key)
-      console.log(key + 1)
-      if (this.state.data[key]["data_id"] == this.state.dataId) {
-        console.log("exit loop")
-        try {
+    /*var currentValue = this.state.active;
+    var apiUrl = `/api/current_user/projects/${this.state.projectId}/data/${this.state.dataId}`
+    console.log(this.state.dataId)
+    apiUrl = `${apiUrl}?active=${this.state.active}`;
+    axios({
+      method: "get",
+      url: apiUrl,
+    })
+      .then((response) => {
+        const {
+          data2,
+          count,
+          active,
+          page,
+          next_page,
+          prev_page,
+        } = response.data;
+        //this.setState({ data: data});*/
+
+        var mn = 1;
+        var mx = this.state.data.length;
+        console.log(this.state.data.length)
+        var randomValue = Math.random() * (mx - mn) + mn
+        console.log(this.state.data)
+        console.log(window.location.href);
+        //TODO: FIX THIS LOGIC HERE TO ACTUALLY SET THE NEXT CLIP
+        var newPageData = this.state.data[0];
+        console.log("entered loop")
+        for (var key in this.state.data) {
+          key = parseInt(key)
           console.log(key + 1)
-          newPageData = this.state.data[key + 1];
-          console.log(newPageData);
-          console.log(newPageData["data_id"]);
-          var url = `/projects/${this.state.projectId}/data/${newPageData["data_id"]}/annotate`
-    
-          ///projects
-          console.log(window.location.href.indexOf("/projects"))
-          var index = window.location.href.indexOf("/projects")
-          var path =  window.location.href.substring(0, index);
-          console.log(path);
-          console.log(path+url);
-          window.location.href = path+url;
-        }
-        catch(e) {
-          try {
-            console.log("hello")
-            console.log(this.state.next_data_url)
-            if (this.state.data[0]["data_id"] != this.state.next_data_id) {
-              window.location.href = this.state.next_data_url
+          if (this.state.data[key]["data_id"] == this.state.dataId) {
+            console.log("exit loop")
+            try {
+              console.log(key + 1)
+              newPageData = this.state.data[key + 1];
+              console.log(newPageData);
+              console.log(newPageData["data_id"]);
             }
-            else {
-              throw "no data remains"
+            catch(e) {
+              console.log("oppise " + e)
+              newPageData = this.state.data[0];
+              //TODO: Implement next page logic here
             }
-            //
-          } catch(e) {
-            console.log("oppise " + e)
-            console.log("oppise " + e)
-            var index = window.location.href.indexOf("/projects")
-            var path =  window.location.href.substring(0, index);
-            window.location.href = path + `/projects/${this.state.projectId}/data`;
-            //TODO: Implement next page logic here
+            console.log(newPageData)
+            break;
           }
         }
-        console.log(newPageData)
-        break;
-      }
-    }
-    //add this back TODO:
-    //window.location.href = path+url;
+        /*var newPageData = data[0];
+        if newPageData["data_id"] = this.dataId {
+          newPageData = data[1]*/
+        //} //Math.floor(randomValue-1)
+        //var newPageData = data[Math.floor(randomValue-1)];
+        console.log(newPageData["data_id"]);
+        var url = `/projects/${this.state.projectId}/data/${newPageData["data_id"]}/annotate`
+        
+        ///projects
+        console.log(window.location.href.indexOf("/projects"))
+        var index = window.location.href.indexOf("/projects")
+        var path =  window.location.href.substring(0, index);
+        console.log(path);
+        console.log(path+url);
+        window.location.href = path+url;
         //href = `/projects/${this.state.projectId}/data/${newPageData["data_id"]}/annotate`
       //});
-    /**try{ //TODO DELETE THIS COMMENT
-          console.log(newPageData["data_id"]);
-        } catch(e) {
-          try {
-            //attempt to use the next page
-            window.location.href = this.state.next_data_url
-          } catch(e) {
-             //general catch here to ensure the data never crashes the app
-            console.log(e)
-            console.log("no more data?")
-            var index = window.location.href.indexOf("/projects")
-            var path =  window.location.href.substring(0, index);
-            window.location.href = path;
-          }
-        } */
+    
     //console.log(data.Data.state);
     //`/projects/${projectId}/data/${data["data_id"]}/annotate`
     //get data that doesn't need to be reviewed, or data that is reivewed
