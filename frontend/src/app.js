@@ -92,9 +92,10 @@ class App extends React.Component {
       this.props.store.set("isUserCreatingAccount", false);
     }
     if (!isUserCreatingAccount) {
+      var apiUrl = "/auth/is_logged_in";
       axios({
         method: "post",
-        url: "/auth/is_logged_in",
+        url: apiUrl
       })
         .then((response) => {
           const { is_logged_in } = response.data;

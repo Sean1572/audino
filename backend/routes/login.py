@@ -7,10 +7,10 @@ from flask_jwt_extended import (
     get_raw_jwt,
 )
 from werkzeug.urls import url_parse
-
+from werkzeug.exceptions import BadRequest
 from backend import app, jwt, redis_client
 from backend.models import User
-
+import json
 from . import auth
 
 
@@ -37,7 +37,8 @@ def login():
 
     username = request.json.get("username", None)
     password = request.json.get("password", None)
-
+    app.logger.info(username)
+    
     if not username:
         return (
             jsonify(message="Please provide your username!", type="USERNAME_MISSING"),
@@ -50,7 +51,7 @@ def login():
             ),
             400,
         )
-
+    
     user = User.query.filter_by(username=username).first()
 
     if user is None or not user.check_password(password):
@@ -60,19 +61,28 @@ def login():
             ),
             401,
         )
-
+    
     is_admin = True if user.role.role == "admin" else False
-
-    access_token = create_access_token(
-        identity={"username": username, "is_admin": is_admin, "user_id": user.id},
-        fresh=True,
-        expires_delta=app.config["JWT_ACCESS_TOKEN_EXPIRES"],
-    )
-
+    app.logger.info(user.id)
+    data = {"username": username, "is_admin": is_admin, "user_id": user.id}#json.loads({"username": "hello", "is_admin": is_admin, "user_id": user.id})
+    app.logger.info(data)
+    try:
+        access_token = create_access_token(
+            identity=data,
+            fresh=True,
+            expires_delta=app.config["JWT_ACCESS_TOKEN_EXPIRES"],
+        )
+    except Exception as e:
+        message = "probelm with access Token"
+        app.logger.error(message)
+        app.logger.error(e)
+        app.logger.error(e.with_traceback)
+        return jsonify(message=message), 450
+    app.logger.info("here")
     access_jti = get_jti(encoded_token=access_token)
 
     redis_client.set(access_jti, "false", app.config["JWT_ACCESS_TOKEN_EXPIRES"] * 1.2)
-
+    
     return (
         jsonify(
             access_token=access_token,

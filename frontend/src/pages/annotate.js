@@ -160,8 +160,9 @@ class Annotate extends React.Component {
       mediaControls: false,
       fillParent: true,
       scrollParent: true,
-      visualization: "invisible", //spectrogram
-      minPxPerSec: 56,
+      visualization: "invisible", //spectrogram //invisable
+      minPxPerSec: 100,
+      maxCanvasWidth: 5000000, //false,
       plugins: [
         SpectrogramPlugin.create({
           //wavesurfer: wavesurfer,
