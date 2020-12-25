@@ -1,7 +1,7 @@
 import axios from "axios";
 import React from "react";
 import WaveSurfer from "/app/frontend/src/wavesurfer.js/src/wavesurfer.js";
-import RegionsPlugin from "wavesurfer.js/dist/plugin/wavesurfer.regions.min.js"; //frontend\src\wavesurfer.js
+import RegionsPlugin from "/app/frontend/src/wavesurfer.js/src/plugin/regions/index.js"//"wavesurfer.js/dist/plugin/wavesurfer.regions.min.js"; //frontend\src\wavesurfer.js
 import TimelinePlugin from "wavesurfer.js/dist/plugin/wavesurfer.timeline.min.js";
 import SpectrogramPlugin from "/app/frontend/src/wavesurfer.js/src/plugin/spectrogram/index.js";
 import { Helmet } from "react-helmet";

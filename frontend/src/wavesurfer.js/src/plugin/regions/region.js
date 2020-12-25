@@ -262,8 +262,8 @@ export class Region {
         const dur = this.wavesurfer.getDuration();
         const width = this.getWidth();
 
-        var startLimited = this.start;
-        var endLimited = this.end;
+        let startLimited = this.start;
+        let endLimited = this.end;
         if (startLimited < 0) {
             startLimited = 0;
             endLimited = endLimited - startLimited;
@@ -311,9 +311,9 @@ export class Region {
         this.firedOut = false;
 
         const onProcess = (time) => {
-            let start = Math.round(this.start * 10) / 10;
-            let end = Math.round(this.end * 10) / 10;
-            time = Math.round(time * 10) / 10;
+            let start = this.start;//Math.round(this.start * 10) / 10;
+            let end = this.end;//Math.round(this.end * 10) / 10;
+            time = this.wavesurfer.getCurrentTime();// Math.round(time * 10) / 10;
 
             if (
                 !this.firedOut &&
