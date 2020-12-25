@@ -203,8 +203,9 @@ class Annotate extends React.Component {
       }
       
       r.once("out", () => {
-        wavesurfer.play(r.start);
-        wavesurfer.pause();
+        //wavesurfer.play(r.start);
+        console.log("pausing on out")
+        //wavesurfer.pause();
       });
     });
 
@@ -218,7 +219,7 @@ class Annotate extends React.Component {
     });
     wavesurfer.on("pause", (r, e) => {
       this.setState({ isPlaying: false });
-      console.log(this.state.active);
+      console.log(this.state.isPlaying);
     });
 
     axios

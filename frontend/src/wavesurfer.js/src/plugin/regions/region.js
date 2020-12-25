@@ -318,7 +318,7 @@ export class Region {
             if (
                 !this.firedOut &&
                 this.firedIn &&
-                (start > time || end <= time)
+                (start > time || end < time)
             ) {
                 this.firedOut = true;
                 this.firedIn = false;
