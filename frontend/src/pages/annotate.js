@@ -20,6 +20,7 @@ import {
 import Alert from "../components/alert";
 import { IconButton, Button } from "../components/button";
 import Loader from "../components/loader";
+import { text } from "@fortawesome/fontawesome-svg-core";
 //import Data from "./data";
 //import * as data from "./data.js";
 //import "./data";
@@ -54,6 +55,7 @@ class Annotate extends React.Component {
       isSegmentDeleting: false,
       errorMessage: null,
       successMessage: null,
+      isRendering: true,
       data: []
     };
 
@@ -184,6 +186,8 @@ class Annotate extends React.Component {
       wavesurfer.stop();
     });
     wavesurfer.on("ready", () => {
+    this.state.isRendering = false;
+    this.setState({isRendering: false})
     //wavesurfer.drawer.canvases[0].position = 'relative';
     //document.getElementById("myBtn").style.left = "100px";
     //wavesurfer.spectrogram.wrapper =  <canvas width="1170" height="256" style="position: relative; z-index: 4; width: 1170px;"></canvas>;
@@ -569,6 +573,7 @@ class Annotate extends React.Component {
       isSegmentSaving,
       errorMessage,
       successMessage,
+      isRendering,
     } = this.state;
     return (
       <div>
@@ -591,14 +596,18 @@ class Annotate extends React.Component {
                 onClose={(e) => this.handleAlertDismiss(e)}
               />
             ) : null}
-            {isDataLoading ? <Loader /> : null}
-            <div className="row justify-content-md-center my-4">
+            {this.state.isRendering &&
+            <div className="row justify-content-md-center my-4"> 
+              <text>Please wait while spectrogram renders</text>
+              <Loader/>
+            </div>
+            }
+            <div className="row justify-content-md-center my-4" style={{display:this.state.isRendering ? "none":"" }}>
               <div ref={(el) => (this.segmentTranscription = el)}></div>
               <div id ="waveform-labels" style={{float:"left"}}></div>
               <div id ="wavegraph" style={{float:"left"}}></div>
               <div id="waveform" style={{float:"left"}}></div>
-              <div id="timeline"></div>
-                
+              <div id="timeline"></div> 
             </div>
             {!isDataLoading ? (
               <div>

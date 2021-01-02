@@ -31,7 +31,7 @@ export class Region {
         this.isResizing = false;
         this.isDragging = false;
         this.loop = Boolean(params.loop);
-        this.color = params.color || 'rgba(0, 0, 0, 0.1)';
+        this.color = params.color || 'rgba(160, 40, 160, 0.4)';
         // The left and right handleStyle properties can be set to 'none' for
         // no styling or can be assigned an object containing CSS properties.
         this.handleStyle = params.handleStyle || {
