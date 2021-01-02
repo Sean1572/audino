@@ -168,6 +168,7 @@ class Annotate extends React.Component {
           //wavesurfer: wavesurfer,
           position: "relative",
           container: "#wavegraph",
+          labelContainer: "#waveform-labels",
           labels: true,
           scrollParent: true,
           colorMap: spectrogramColorMap,
@@ -593,8 +594,9 @@ class Annotate extends React.Component {
             {isDataLoading ? <Loader /> : null}
             <div className="row justify-content-md-center my-4">
               <div ref={(el) => (this.segmentTranscription = el)}></div>
-              <div id ="wavegraph"></div>
-              <div id="waveform"></div>
+              <div id ="waveform-labels" style={{float:"left"}}></div>
+              <div id ="wavegraph" style={{float:"left"}}></div>
+              <div id="waveform" style={{float:"left"}}></div>
               <div id="timeline"></div>
                 
             </div>

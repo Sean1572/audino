@@ -99,6 +99,16 @@ export default class SpectrogramPlugin {
             if (!this.container) {
                 throw Error('No container for WaveSurfer spectrogram');
             }
+
+            this.labelContainer =
+                'string' == typeof params.labelContainer
+                    ? document.querySelector(params.labelContainer)
+                    : params.labelContainer;
+
+            if (!this.labelContainer) {
+                throw Error('No container for WaveSurfer spectrogram');
+            }
+
             if (params.colorMap) {
                 if (params.colorMap.length < 256) {
                     throw new Error('Colormap must contain 256 elements');
@@ -166,8 +176,13 @@ export default class SpectrogramPlugin {
         if (prevSpectrogram) {
             this.container.removeChild(prevSpectrogram);
         }
+        const prevLabel = this.labelContainer.querySelector('labels');
+        if (prevLabel) {
+            this.container.removeChild(prevLabel);
+        }
         const wsParams = this.wavesurfer.params;
         this.wrapper = document.createElement('spectrogram');
+        this.wrapper2 = document.createElement('labels');
         // if labels are active
         console.log("looks like it reading from here")
         if (this.params.labels) {
@@ -180,7 +195,7 @@ export default class SpectrogramPlugin {
                 height: `${this.height / this.pixelRatio}px`,
                 width: `${55 / this.pixelRatio}px`
             });
-            this.wrapper.appendChild(labelsEl);
+            this.wrapper2.appendChild(labelsEl);
             this.loadLabels(
                 'rgba(68,68,68,0.5)',
                 '12px',
@@ -198,7 +213,17 @@ export default class SpectrogramPlugin {
             position: 'Absolute',
             userSelect: 'none',
             webkitUserSelect: 'none',
-            height: `${this.height / this.pixelRatio}px`
+            height: `${this.height / this.pixelRatio}px`,
+            left: `${55 / this.pixelRatio / 2}px`
+        });
+
+        this.drawer.style(this.wrapper2, {
+            display: 'block',
+            position: 'Absolute',
+            userSelect: 'none',
+            webkitUserSelect: 'none',
+            height: `${this.height / this.pixelRatio}px`,
+            left: `${-55 / this.pixelRatio / 2}px`
         });
 
         if (wsParams.fillParent || wsParams.scrollParent) {
@@ -209,6 +234,7 @@ export default class SpectrogramPlugin {
             });
         }
         this.container.appendChild(this.wrapper);
+        this.labelContainer.appendChild(this.wrapper2);
 
         this.wrapper.addEventListener('click', this._onWrapperClick);
     }
