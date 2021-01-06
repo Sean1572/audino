@@ -461,6 +461,93 @@ class Annotate extends React.Component {
     }
   }
 
+  handleAllSegmentSave(e) {
+    const { selectedSegment, segmentationUrl,wavesurfer } = this.state;
+    console.log( wavesurfer.regions.list)
+    for (var segment_name in wavesurfer.regions.list) {
+      try {
+        const segment =  wavesurfer.regions.list[segment_name]
+        console.log( segment_name, segment);
+        const { start, end } = segment;
+        const {
+          transcription = "",
+          annotations = "",
+          segmentation_id = null,
+        } = segment.data;
+        console.log (transcription)
+        console.log(annotations)
+        if (annotations === "") {
+          console.log("No data, no save")
+          continue;
+        }
+        this.setState({ isSegmentSaving: true });
+
+        if (segmentation_id === null) {
+          axios({
+            method: "post",
+            url: segmentationUrl,
+            data: {
+              start,
+              end,
+              transcription,
+              annotations,
+            },
+          })
+            .then((response) => {
+              const { segmentation_id } = response.data;
+              segment.data.segmentation_id = segmentation_id;
+              this.setState({
+                isSegmentSaving: false,
+                selectedSegment: segment,
+                successMessage: "Segment saved",
+                errorMessage: null,
+              });
+              segment.update({color: 'rgba(160, 40, 160, 0.4)'})
+            })
+            .catch((error) => {
+              console.log(error);
+              this.setState({
+                isSegmentSaving: false,
+                errorMessage: "Error saving segment",
+                successMessage: null,
+              });
+            });
+        } else {
+          axios({
+            method: "put",
+            url: `${segmentationUrl}/${segmentation_id}`,
+            data: {
+              start,
+              end,
+              transcription,
+              annotations,
+            },
+          })
+            .then((response) => {
+              this.setState({
+              isSegmentSaving: false,
+              successMessage: "Segment saved",
+              errorMessage: null,
+            });
+            segment.update({color: 'rgba(160, 40, 160, 0.4)'})
+          })
+          .catch((error) => {
+            console.log(error);
+            this.setState({
+              isSegmentSaving: false,
+              errorMessage: "Error saving segment",
+              successMessage: null,
+            });
+          });
+        }
+      }
+      catch(err) {
+        console.log(err)
+        continue;
+      }
+    }
+  }
+
   handleTranscriptionChange(e) {
     const { selectedSegment } = this.state;
     selectedSegment.data.transcription = e.target.value;
@@ -743,7 +830,17 @@ class Annotate extends React.Component {
                           //disabled={isSegmentSaving}
                           onClick={(e) => this.handleSegmentSave(e)}
                           //sSubmitting={isSegmentSaving}
-                          text="Save"
+                          text="Save Current Segment"
+                        />
+                      </div>
+                      <div className="col-2">
+                        <Button
+                          size="lg"
+                          type="primary"
+                          //disabled={isSegmentSaving}
+                          onClick={(e) => this.handleAllSegmentSave(e)}
+                          //sSubmitting={isSegmentSaving}
+                          text="Save All"
                         />
                       </div>
                     </div>
