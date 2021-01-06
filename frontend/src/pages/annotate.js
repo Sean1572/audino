@@ -152,11 +152,12 @@ class Annotate extends React.Component {
     var json = JSON.stringify(spectrogramColorMap, 2)
     const { labelsUrl, dataUrl } = this.state;
     this.setState({ isDataLoading: true });
+    let fftSamples = 512
     const wavesurfer = WaveSurfer.create({
       container: "#waveform",
       barWidth: 0,
       barHeight: 0,
-      height: 230,
+      height: fftSamples/2,
       width: "100%",
       barGap: null,
       mediaControls: false,
@@ -168,6 +169,7 @@ class Annotate extends React.Component {
       plugins: [
         SpectrogramPlugin.create({
           //wavesurfer: wavesurfer,
+          fftSamples: fftSamples, 
           position: "relative",
           container: "#wavegraph",
           labelContainer: "#waveform-labels",
@@ -186,6 +188,7 @@ class Annotate extends React.Component {
       wavesurfer.stop();
     });
     wavesurfer.on("ready", () => {
+      
     this.state.isRendering = false;
     this.setState({isRendering: false})
     //wavesurfer.drawer.canvases[0].position = 'relative';
@@ -193,6 +196,14 @@ class Annotate extends React.Component {
     //wavesurfer.spectrogram.wrapper =  <canvas width="1170" height="256" style="position: relative; z-index: 4; width: 1170px;"></canvas>;
     console.log(wavesurfer.spectrogram.wrapper);
       wavesurfer.enableDragSelection({ color: "rgba(0, 102, 255, 0.3)" });
+    });
+    wavesurfer.on("region-updated", (region) => {
+      console.log("changed")
+      this.handlePause();
+    });
+    
+    wavesurfer.on("region-created", (region) => {
+      this.handlePause();
     });
     wavesurfer.on("region-in", (region) => {
       this.showSegmentTranscription(region);
@@ -410,6 +421,7 @@ class Annotate extends React.Component {
             successMessage: "Segment saved",
             errorMessage: null,
           });
+          selectedSegment.update({color: 'rgba(160, 40, 160, 0.4)'})
         })
         .catch((error) => {
           console.log(error);
@@ -436,6 +448,7 @@ class Annotate extends React.Component {
             successMessage: "Segment saved",
             errorMessage: null,
           });
+          selectedSegment.update({color: 'rgba(160, 40, 160, 0.4)'})
         })
         .catch((error) => {
           console.log(error);

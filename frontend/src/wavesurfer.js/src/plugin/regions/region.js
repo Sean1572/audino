@@ -120,8 +120,11 @@ export class Region {
         if (params.attributes != null) {
             this.attributes = params.attributes;
         }
-
-        this.updateRender();
+        if (params.color != null) {
+            this.updateRender(params.color);
+        } else {
+            this.updateRender();
+        }
         this.fireEvent('update');
         this.wavesurfer.fireEvent('region-updated', this);
     }
@@ -257,7 +260,7 @@ export class Region {
     }
 
     /* Update element's position, width, color. */
-    updateRender() {
+    updateRender(color=this.color) {
         // duration varies during loading process, so don't overwrite important data
         const dur = this.wavesurfer.getDuration();
         const width = this.getWidth();
@@ -290,7 +293,7 @@ export class Region {
             this.style(this.element, {
                 left: left + 'px',
                 width: regionWidth + 'px',
-                backgroundColor: this.color,
+                backgroundColor: color,
                 cursor: this.drag ? 'move' : 'default'
             });
 
@@ -408,6 +411,7 @@ export class Region {
 
         // Scroll when the user is dragging within the threshold
         const edgeScroll = (e) => {
+            //this.wavesurfer.fireEvent('region-change', this)
             const duration = this.wavesurfer.getDuration();
             if (!scrollDirection || (!drag && !resize)) {
                 return;
@@ -503,6 +507,7 @@ export class Region {
         };
 
         const onDown = (e) => {
+            //this.wavesurfer.fireEvent('region-change', this)
             const duration = this.wavesurfer.getDuration();
             if (e.touches && e.touches.length > 1) {
                 return;
@@ -542,6 +547,7 @@ export class Region {
             }
         };
         const onUp = (e) => {
+            //this.wavesurfer.fireEvent('region-change', this)
             if (e.touches && e.touches.length > 1) {
                 return;
             }
@@ -562,6 +568,7 @@ export class Region {
             }
         };
         const onMove = (e) => {
+            //this.wavesurfer.fireEvent('region-change', this)
             const duration = this.wavesurfer.getDuration();
 
             if (e.touches && e.touches.length > 1) {

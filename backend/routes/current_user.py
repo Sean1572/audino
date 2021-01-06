@@ -338,7 +338,6 @@ def get_next_data_unknown(project_id, data_value):
         #        print(big_key, key)
         data["pending"] = (
             db.session.query(Data)
-            .filter(request_user.id == Data.assigned_user_id[big_key])
             .filter(Data.project_id == project_id)
             .filter(Data.id.notin_(segmentations))
             .distinct()
@@ -347,7 +346,6 @@ def get_next_data_unknown(project_id, data_value):
 
         data["completed"] = (
             db.session.query(Data)
-            .filter(request_user.id == Data.assigned_user_id[big_key])
             .filter(Data.project_id == project_id)
             .filter(Data.id.in_(segmentations))
             .distinct()
@@ -402,8 +400,9 @@ def get_next_data_unknown(project_id, data_value):
                     )
             if (next_page is not None):
                 test_page += 1
-            else:
-                raise "Data Doesn't Exist"
+            #else:
+            #    app.logger.log("data doesn't exist")
+            #    raise "Data Doesn't Exist"
     except Exception as e:
         message = "Error fetching all data points"
         app.logger.error(message)

@@ -64,7 +64,7 @@ export default class Drawer extends util.Observer {
             position: 'relative',
             userSelect: 'none',
             webkitUserSelect: 'none',
-            height: this.params.height + 'px',
+            height: this.params.height/this.params.pixelRatio + 'px',
             left: 55 / this.params.pixelRatio / 2 + 'px',
         }); //${-55 / this.pixelRatio / 2}
         console.log(-55 / this.pixelRatio / 2)
