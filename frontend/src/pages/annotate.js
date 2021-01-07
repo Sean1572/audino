@@ -188,18 +188,28 @@ class Annotate extends React.Component {
       wavesurfer.stop();
     });
     wavesurfer.on("ready", () => {
-      
-    this.state.isRendering = false;
-    this.setState({isRendering: false})
-    //wavesurfer.drawer.canvases[0].position = 'relative';
-    //document.getElementById("myBtn").style.left = "100px";
-    //wavesurfer.spectrogram.wrapper =  <canvas width="1170" height="256" style="position: relative; z-index: 4; width: 1170px;"></canvas>;
-    console.log(wavesurfer.spectrogram.wrapper);
+      console.log("zoom checks")
+      console.log(wavesurfer.drawer.getWidth())
+      console.log(wavesurfer.getDuration() * wavesurfer.params.minPxPerSec)
+      let screenSize = window.screen.width;//window.innerWidth;
+      if (screenSize > wavesurfer.getDuration() * wavesurfer.params.minPxPerSec) {
+        wavesurfer.zoom(screenSize / wavesurfer.getDuration())
+        console.log(wavesurfer.spectrogram)
+        wavesurfer.spectrogram._onUpdate(screenSize)
+      }
+      console.log("zoom checks")
+      this.state.isRendering = false;
+      this.setState({isRendering: false})
+      //wavesurfer.drawer.canvases[0].position = 'relative';
+      //document.getElementById("myBtn").style.left = "100px";
+      //wavesurfer.spectrogram.wrapper =  <canvas width="1170" height="256" style="position: relative; z-index: 4; width: 1170px;"></canvas>;
+      console.log(wavesurfer.spectrogram.wrapper);
       wavesurfer.enableDragSelection({ color: "rgba(0, 102, 255, 0.3)" });
     });
     wavesurfer.on("region-updated", (region) => {
       console.log("changed")
       this.handlePause();
+      region.style(region.element, {backgroundColor:  "rgba(0, 102, 255, 0.3)",});
     });
     
     wavesurfer.on("region-created", (region) => {
@@ -421,7 +431,7 @@ class Annotate extends React.Component {
             successMessage: "Segment saved",
             errorMessage: null,
           });
-          selectedSegment.update({color: 'rgba(160, 40, 160, 0.4)'})
+          selectedSegment.style(selectedSegment.element, {backgroundColor:  "rgba(0, 0, 0, 0.7)",});
         })
         .catch((error) => {
           console.log(error);
@@ -448,7 +458,7 @@ class Annotate extends React.Component {
             successMessage: "Segment saved",
             errorMessage: null,
           });
-          selectedSegment.update({color: 'rgba(160, 40, 160, 0.4)'})
+          selectedSegment.style(selectedSegment.element, {backgroundColor:  "rgba(0, 0, 0, 0.7)",});
         })
         .catch((error) => {
           console.log(error);
@@ -502,7 +512,8 @@ class Annotate extends React.Component {
                 successMessage: "Segment saved",
                 errorMessage: null,
               });
-              segment.update({color: 'rgba(160, 40, 160, 0.4)'})
+              //segment.update({color: 'rgba(40, 40, 40, 0.7)'})
+              segment.style(segment.element, {backgroundColor: "rgba(0, 0, 0, 0.7)",});
             })
             .catch((error) => {
               console.log(error);
@@ -529,7 +540,7 @@ class Annotate extends React.Component {
               successMessage: "Segment saved",
               errorMessage: null,
             });
-            segment.update({color: 'rgba(160, 40, 160, 0.4)'})
+            segment.style(segment.element, {backgroundColor:  "rgba(0, 0, 0, 0.7)",});
           })
           .catch((error) => {
             console.log(error);
