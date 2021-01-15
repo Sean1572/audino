@@ -64,7 +64,7 @@ export default class Drawer extends util.Observer {
             position: 'relative',
             userSelect: 'none',
             webkitUserSelect: 'none',
-            height: this.params.height/this.params.pixelRatio + 'px',
+            height: this.params.height/this.params.pixelRatio + 17 + 'px', //THIS IS WHERE HEIGHT IS CHANGED
             left: 55 / this.params.pixelRatio / 2 + 'px',
         }); //${-55 / this.pixelRatio / 2}
         console.log(-55 / this.pixelRatio / 2)
@@ -306,7 +306,7 @@ export default class Drawer extends util.Observer {
         this.style(this.wrapper, {
             height: ~~(this.height / this.params.pixelRatio) + 'px'
         });
-
+        console.log("HEY LOOK HERE" + ~~(this.height / this.params.pixelRatio) + 'px')
         this.updateSize();
         return true;
     }

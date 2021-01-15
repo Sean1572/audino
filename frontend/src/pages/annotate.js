@@ -54,6 +54,7 @@ class Annotate extends React.Component {
       selectedSegment: null,
       isSegmentDeleting: false,
       errorMessage: null,
+      errorUnsavedMessage: null,
       successMessage: null,
       isRendering: true,
       data: []
@@ -210,10 +211,12 @@ class Annotate extends React.Component {
       console.log("changed")
       this.handlePause();
       region.style(region.element, {backgroundColor:  "rgba(0, 102, 255, 0.3)",});
+      region._onUnSave()
     });
     
     wavesurfer.on("region-created", (region) => {
       this.handlePause();
+      console.log(region)
     });
     wavesurfer.on("region-in", (region) => {
       this.showSegmentTranscription(region);
@@ -236,12 +239,15 @@ class Annotate extends React.Component {
     });
 
     wavesurfer.on("region-click", (r, e) => {
+     
       e.stopPropagation();
       this.setState({
         isPlaying: true,
         selectedSegment: r,
       });
       r.play();
+
+      console.log(r.saved)
     });
     wavesurfer.on("pause", (r, e) => {
       this.setState({ isPlaying: false });
@@ -432,6 +438,7 @@ class Annotate extends React.Component {
             errorMessage: null,
           });
           selectedSegment.style(selectedSegment.element, {backgroundColor:  "rgba(0, 0, 0, 0.7)",});
+          selectedSegment._onSave()
         })
         .catch((error) => {
           console.log(error);
@@ -459,6 +466,7 @@ class Annotate extends React.Component {
             errorMessage: null,
           });
           selectedSegment.style(selectedSegment.element, {backgroundColor:  "rgba(0, 0, 0, 0.7)",});
+          selectedSegment._onSave()
         })
         .catch((error) => {
           console.log(error);
@@ -475,6 +483,7 @@ class Annotate extends React.Component {
     const { selectedSegment, segmentationUrl,wavesurfer } = this.state;
     console.log( wavesurfer.regions.list)
     for (var segment_name in wavesurfer.regions.list) {
+      console.log("still running save")
       try {
         const segment =  wavesurfer.regions.list[segment_name]
         console.log( segment_name, segment);
@@ -514,6 +523,7 @@ class Annotate extends React.Component {
               });
               //segment.update({color: 'rgba(40, 40, 40, 0.7)'})
               segment.style(segment.element, {backgroundColor: "rgba(0, 0, 0, 0.7)",});
+              segment._onSave()
             })
             .catch((error) => {
               console.log(error);
@@ -541,6 +551,7 @@ class Annotate extends React.Component {
               errorMessage: null,
             });
             segment.style(segment.element, {backgroundColor:  "rgba(0, 0, 0, 0.7)",});
+            segment._onSave()
           })
           .catch((error) => {
             console.log(error);
@@ -587,61 +598,81 @@ class Annotate extends React.Component {
     this.setState({
       successMessage: "",
       errorMessage: "",
+      errorUnsavedMessage: "",
     });
   }
 
 
-  handleNextClip(e) {
-    console.log(this.state.page)
-    console.log(this.state.data)
-    console.log(window.location.href);
-    //TODO: FIX THIS LOGIC HERE TO ACTUALLY SET THE NEXT CLIP
-    var newPageData = this.state.data[0];
-    console.log("entered loop")
-    for (var key in this.state.data) {
-      key = parseInt(key)
-      console.log(key + 1)
-      if (this.state.data[key]["data_id"] == this.state.dataId) {
-        console.log("exit loop")
-        try {
-          console.log(key + 1)
-          newPageData = this.state.data[key + 1];
-          console.log(newPageData);
-          console.log(newPageData["data_id"]);
-          var url = `/projects/${this.state.projectId}/data/${newPageData["data_id"]}/annotate`
-    
-          ///projects
-          console.log(window.location.href.indexOf("/projects"))
-          var index = window.location.href.indexOf("/projects")
-          var path =  window.location.href.substring(0, index);
-          console.log(path);
-          console.log(path+url);
-          window.location.href = path+url;
-        }
-        catch(e) {
+  handleNextClip(e, forceNext=false) {
+      //all possible code saved, lets continue!
+      this.handleAllSegmentSave(e)
+      console.log("SAVE IS GOOD LETS KEEP GOING")
+      const { selectedSegment, segmentationUrl,wavesurfer } = this.state;
+      for (var segment_name in wavesurfer.regions.list) {
+          const segment =  wavesurfer.regions.list[segment_name]
+          console.log( segment_name, segment);
+          if (segment.saved == false && !forceNext) {
+            if (segment.data.annotations == null) {
+              this.setState({
+                errorUnsavedMessage: "There regions without a label! You can't leave yet! If you are sure, click \"force next\""
+              });
+              return;
+            }
+            //TODO: Change this to a modal
+          }
+      }
+
+
+      console.log(this.state.page)
+      console.log(this.state.data)
+      console.log(window.location.href);
+      //TODO: FIX THIS LOGIC HERE TO ACTUALLY SET THE NEXT CLIP
+      var newPageData = this.state.data[0];
+      console.log("entered loop")
+      for (var key in this.state.data) {
+        key = parseInt(key)
+        console.log(key + 1)
+        if (this.state.data[key]["data_id"] == this.state.dataId) {
+          console.log("exit loop")
           try {
-            console.log("hello")
-            console.log(this.state.next_data_url)
-            if (this.state.data[0]["data_id"] != this.state.next_data_id) {
-              window.location.href = this.state.next_data_url
-            }
-            else {
-              throw "no data remains"
-            }
-            //
-          } catch(e) {
-            console.log("oppise " + e)
-            console.log("oppise " + e)
+            console.log(key + 1)
+            newPageData = this.state.data[key + 1];
+            console.log(newPageData);
+            console.log(newPageData["data_id"]);
+            var url = `/projects/${this.state.projectId}/data/${newPageData["data_id"]}/annotate`
+      
+            ///projects
+            console.log(window.location.href.indexOf("/projects"))
             var index = window.location.href.indexOf("/projects")
             var path =  window.location.href.substring(0, index);
-            window.location.href = path + `/projects/${this.state.projectId}/data`;
-            //TODO: Implement next page logic here
+            console.log(path);
+            console.log(path+url);
+            window.location.href = path+url;
           }
+          catch(e) {
+            try {
+              console.log("hello")
+              console.log(this.state.next_data_url)
+              if (this.state.data[0]["data_id"] != this.state.next_data_id) {
+                window.location.href = this.state.next_data_url
+              }
+              else {
+                throw "no data remains"
+              }
+              //
+            } catch(e) {
+              console.log("oppise " + e)
+              console.log("oppise " + e)
+              var index = window.location.href.indexOf("/projects")
+              var path =  window.location.href.substring(0, index);
+              window.location.href = path + `/projects/${this.state.projectId}/data`;
+              //TODO: Implement next page logic here
+            }
+          }
+          console.log(newPageData)
+          break;
         }
-        console.log(newPageData)
-        break;
       }
-    }
     //add this back TODO:
     //window.location.href = path+url;
         //href = `/projects/${this.state.projectId}/data/${newPageData["data_id"]}/annotate`
@@ -683,6 +714,7 @@ class Annotate extends React.Component {
       isSegmentDeleting,
       isSegmentSaving,
       errorMessage,
+      errorUnsavedMessage,
       successMessage,
       isRendering,
     } = this.state;
@@ -693,6 +725,23 @@ class Annotate extends React.Component {
         </Helmet>
         <div className="container h-100">
           <div className="h-100 mt-5 text-center">
+          {errorUnsavedMessage ? (
+            <div>
+              <Alert
+                type="danger"
+                message={errorUnsavedMessage}
+                onClose={(e) => this.handleAlertDismiss(e)}
+              />
+              <Button
+                size="large"
+                type="danger"
+                disabled={isSegmentSaving}
+                onClick={(e) => this.handleNextClip(e, true)}
+                isSubmitting={isSegmentSaving}
+                text="Force Next"
+              />
+            </div>
+            ) : null}
             {errorMessage ? (
               <Alert
                 type="danger"
@@ -834,7 +883,7 @@ class Annotate extends React.Component {
                           text="Delete"
                         />
                       </div>
-                      <div className="col-2">
+                      {/*<div className="col-2">
                         <Button
                           size="lg"
                           type="primary"
@@ -843,7 +892,7 @@ class Annotate extends React.Component {
                           //sSubmitting={isSegmentSaving}
                           text="Save Current Segment"
                         />
-                      </div>
+                    </div>*/}
                       <div className="col-2">
                         <Button
                           size="lg"

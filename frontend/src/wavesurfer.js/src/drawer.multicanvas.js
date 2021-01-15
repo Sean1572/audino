@@ -155,6 +155,7 @@ export default class MultiCanvas extends Drawer {
             if (i == lastCanvas) {
                 canvasWidth = this.width - this.maxCanvasWidth * lastCanvas;
             }
+            console.log("MORE INFO HERE + " +  this.height);
             this.updateDimensions(entry, canvasWidth, this.height);
 
             entry.clearWave();
@@ -237,6 +238,8 @@ export default class MultiCanvas extends Drawer {
      * @param {number} height The new height of the element
      */
     updateDimensions(entry, width, height) {
+        //height += 21
+        console.log("CHANGED HEIGHT IS HERE: " + height);
         const elementWidth = Math.round(width / this.params.pixelRatio);
         const totalWidth = Math.round(this.width / this.params.pixelRatio);
 

@@ -82,6 +82,9 @@ export class Region {
         this.wavesurfer.on('zoom', this._onRedraw);
         this.wavesurfer.on('redraw', this._onRedraw);
         this.wavesurfer.fireEvent('region-created', this);
+        this.saved = false;
+        this._onSave = () => this.save();
+        this._onUnSave = () => this.unsave();
     }
 
     /* Update region params. */
@@ -127,6 +130,16 @@ export class Region {
         }
         this.fireEvent('update');
         this.wavesurfer.fireEvent('region-updated', this);
+    }
+
+    /* set region as saved */
+    save() {
+        this.saved = true;
+    }
+
+    /* set region as unsaved */
+    unsave() {
+        this.saved = false;
     }
 
     /* Remove a single region. */

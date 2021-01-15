@@ -109,6 +109,7 @@ export default class CanvasEntry {
         // set wave canvas dimensions
         this.wave.width = width;
         this.wave.height = height;
+        console.log("WAve height" + height) //CHECK THIS
         let elementSize = { width: elementWidth + 'px' };
         style(this.wave, elementSize);
 
