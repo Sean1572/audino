@@ -161,7 +161,9 @@ export default class Drawer extends util.Observer {
         if (visualization === 'invisible') {
             //draw nothing
         } else if (visualization === 'spectrogram' && buffer) {
+            console.log(new Date().toLocaleString())
             this.drawSpectrogram(buffer);
+            console.log(new Date().toLocaleString())
         } else {
             this.params.barWidth ? 
             this.drawBars(peaks, 0, start, end)
@@ -361,7 +363,7 @@ export default class Drawer extends util.Observer {
         
     }
 
-    getFrequencies(buffer) {
+    async getFrequencies(buffer) {
         var fftSamples = this.params.fftSamples || 512;
         var channelOne = Array.prototype.slice.call(buffer.getChannelData(0));
         var bufferLength = buffer.length;
@@ -399,7 +401,7 @@ export default class Drawer extends util.Observer {
         return frequencies;
     }
 
-    resample(oldMatrix) {
+    async resample(oldMatrix) {
         var columnsNumber = this.width;
         var newMatrix = [];
 
@@ -442,13 +444,13 @@ export default class Drawer extends util.Observer {
         return newMatrix;
     }
 
-    drawSpectrogram(buffer) {
+    async drawSpectrogram(buffer) {
         var pixelRatio = this.params.pixelRatio;
         var length = buffer.duration;
         var height = (this.params.fftSamples / 2) * pixelRatio;
-        var frequenciesData = this.getFrequencies(buffer);
+        var frequenciesData = await this.getFrequencies(buffer);
 
-        var pixels = this.resample(frequenciesData);
+        var pixels = await this.resample(frequenciesData);
 
         var heightFactor = pixelRatio;
 

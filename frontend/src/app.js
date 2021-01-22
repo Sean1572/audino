@@ -1,5 +1,5 @@
 import axios from "axios";
-import React from "react";
+
 import {
   BrowserRouter as Router,
   Switch,
@@ -18,14 +18,14 @@ import {
   Labels,
   LabelValues,
   Data,
-  Annotate,
   Database,
   CreateUser,
 } from "./pages";
 import NavBar from "./containers/navbar";
 import createUserForm from "./containers/forms/createUserForm";
 import { faWindowRestore } from "@fortawesome/free-solid-svg-icons";
-
+import React, { Suspense } from 'react';
+const Annotate = React.lazy(() => import("../src/pages/annotate"));
 const history = createBrowserHistory();
 
 const initialState = {
@@ -146,6 +146,7 @@ class App extends React.Component {
         <div className="app">
           <Helmet titleTemplate="%s | audino" defaultTitle="audino"></Helmet>
           <NavBar />
+          <Suspense fallback={<div>Loading...</div>}>
           <Switch>
             <Route
               exact
@@ -187,7 +188,8 @@ class App extends React.Component {
             <Route exact path="*">
               <Error message="Page not found!" />
             </Route>
-          </Switch>
+            </Switch>
+            </Suspense>
         </div>
       </Router>
     );
